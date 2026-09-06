@@ -548,5 +548,7 @@
   "gui.openprinter.status.blocked.5": "Clear output tray",
   "gui.openprinter.status.blocked.6": "Waiting for power",
   "gui.openprinter.status.blocked.7": "Load empty maps",
-  "gui.openprinter.status.blocked.8": "Load a writable book"
+  "gui.openprinter.status.blocked.8": "Load a writable book",
+  "entity.opencomputers.villager.it_nerd": "Old IT Nerd (she/her)",
+  "entity.minecraft.villager.opencomputers.it_nerd": "Old IT Nerd"
 }

@@ -353,7 +353,7 @@
         },
         "projection": "rigid"
       },
-      "weight": 1
+      "weight": 5
     }
   ],
   "fallback": "minecraft:village/plains/terminators"

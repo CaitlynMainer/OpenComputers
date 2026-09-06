@@ -1,0 +1,247 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2.0,
+        "max": 4.0
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:transistor",
+          "weight": 18,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2.0,
+                "max": 5.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:cable",
+          "weight": 14,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2.0,
+                "max": 6.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:printedcircuitboard",
+          "weight": 13,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 3.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:chip1",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 2.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:circuitboard",
+          "weight": 8,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 2.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:disk",
+          "weight": 7,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2.0,
+                "max": 4.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:chip2",
+          "weight": 3
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2.0,
+        "max": 3.0
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:ram1",
+          "weight": 14
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:cpu1",
+          "weight": 12
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:hdd1",
+          "weight": 12
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:componentbus1",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:graphicscard1",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:ram2",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:lancard",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:redstonecard1",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:cpu2",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:hdd2",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:wlancard1",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:audiocard1",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:generatorupgrade",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:componentbus2",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:graphicscard2",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:ram3",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "rolls": 1.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 22
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:keyboard",
+          "weight": 12
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:screen1",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:diskdrive",
+          "weight": 9
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:case1",
+          "weight": 7
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:capacitor",
+          "weight": 6
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:adapter",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:screen2",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:case2",
+          "weight": 2
+        }
+      ]
+    }
+  ]
+}

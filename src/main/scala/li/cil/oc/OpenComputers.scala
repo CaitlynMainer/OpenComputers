@@ -6,12 +6,14 @@ import li.cil.oc.common.datacomponents.OCComponents
 import li.cil.oc.common.entity.EntityTypes
 import li.cil.oc.common.init.{OCBlocks, OCItems}
 import li.cil.oc.common.menu.MenuTypes
+import li.cil.oc.common.VillageContent
 import li.cil.oc.common.openprinter.OpenPrinter
 import li.cil.oc.common.recipe.Recipes
 import li.cil.oc.common.{IMC, Proxy}
 import li.cil.oc.integration.Mods
 import li.cil.oc.server.command.CommandHandler
 import li.cil.oc.server.loot.{LootConditions, LootFunctions}
+import li.cil.oc.server.loot.LootTableHandler
 import li.cil.oc.util.ThreadPoolFactory
 import net.neoforged.api.distmarker.Dist
 import net.neoforged.bus.api.{IEventBus, SubscribeEvent}
@@ -70,6 +72,7 @@ class OpenComputers(modBus: IEventBus, modContainer: ModContainer) {
   Recipes.init(modBus)
   LootConditions.init(modBus)
   LootFunctions.init(modBus)
+  VillageContent.init(modBus)
   EntityTypes.ENTITY_TYPES.register(modBus)
   modBus.addListener(EntityTypes.onAttributeCreation)
   MenuTypes.MENU.register(modBus)
@@ -79,6 +82,8 @@ class OpenComputers(modBus: IEventBus, modContainer: ModContainer) {
   modBus.register(OpenComputers.proxy)
   OpenComputers.proxy.preInit()
   NeoForge.EVENT_BUS.register(ThreadPoolFactory)
+  NeoForge.EVENT_BUS.register(LootTableHandler.INSTANCE)
+  NeoForge.EVENT_BUS.register(VillageContent.INSTANCE)
   NeoForge.EVENT_BUS.addListener(CommandHandler.onRegisterCommands)
   modBus.register(ColorHandler)
 

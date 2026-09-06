@@ -21,6 +21,9 @@ public final class LootFunctions {
     public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<CopyColor>> COPY_COLOR =
             DR.register("copy_color", () -> new LootItemFunctionType<>(CopyColor.CODEC));
 
+    public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<RandomLootDisk>> RANDOM_LOOT_DISK =
+            DR.register("random_loot_disk", () -> new LootItemFunctionType<>(RandomLootDisk.CODEC));
+
     public static void init(IEventBus bus) {
         DR.register(bus);
     }

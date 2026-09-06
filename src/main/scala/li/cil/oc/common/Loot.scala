@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.server.packs.resources.{ResourceManager, SimpleJsonResourceReloadListener}
 import net.minecraft.util.profiling.ProfilerFiller
+import net.minecraft.util.RandomSource
 import net.minecraft.world.item.{DyeColor, ItemStack}
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.storage.LevelResource
@@ -100,6 +101,15 @@ object Loot {
   def randomDisk(rng: Random) =
     if (disksForSampling.nonEmpty) Some(disksForSampling(rng.nextInt(disksForSampling.length)))
     else None
+
+  /**
+   * Select a disk for a loot-table result. This is deliberately evaluated when
+   * the chest is opened, after datapack reloads have populated the disk list.
+   */
+  def randomDiskForLoot(rng: RandomSource): ItemStack = synchronized {
+    if (disksForSampling.nonEmpty) disksForSampling(rng.nextInt(disksForSampling.length)).copy()
+    else ItemStack.EMPTY
+  }
 
   def registerLootDisk(display_name: String, name: String, loc: ResourceLocation, color: DyeColor, factory: Callable[FileSystem], doRecipeCycling: Boolean): ItemStack = {
     val stack = OCItems.get(Constants.ItemName.Floppy).createItemStack(1)

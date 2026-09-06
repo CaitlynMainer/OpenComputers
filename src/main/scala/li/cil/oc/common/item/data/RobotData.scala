@@ -1,12 +1,11 @@
 package li.cil.oc.common.item.data
 
-import com.google.common.base.Charsets
 import com.google.common.base.Strings
 import li.cil.oc.Constants
-import li.cil.oc.OpenComputers
 import li.cil.oc.Settings
 import li.cil.oc.api
 import li.cil.oc.api.ImmutableItemStack
+import li.cil.oc.common.NameList
 import li.cil.oc.common.datacomponents.{OCComponents, RobotChargeInfo}
 import li.cil.oc.integration.opencomputers.{DriverScreen, Item}
 import li.cil.oc.util.ExtendedDataComponentHolder._
@@ -15,7 +14,6 @@ import net.minecraft.core.HolderLookup
 import net.minecraft.core.component.{DataComponentHolder, DataComponents}
 import net.minecraft.world.item.ItemStack
 
-import scala.io.Source
 import scala.jdk.CollectionConverters._
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.nbt.Tag
@@ -26,16 +24,7 @@ import net.neoforged.neoforge.common.MutableDataComponentHolder
 import net.neoforged.neoforge.server.ServerLifecycleHooks
 
 object RobotData {
-  val names = try {
-    Source.fromInputStream(getClass.getResourceAsStream(
-      "/assets/" + Settings.resourceDomain + "/robot.names"))(Charsets.UTF_8).
-      getLines().map(_.takeWhile(_ != '#').trim()).filter(_ != "").toArray
-  }
-  catch {
-    case t: Throwable =>
-      OpenComputers.log.warn("Failed loading robot name list.", t)
-      Array.empty[String]
-  }
+  val names = NameList.load(Settings.resourceDomain, "robot")
 
   def randomName = if (names.length > 0) names((math.random() * names.length).toInt) else "Robot"
 }

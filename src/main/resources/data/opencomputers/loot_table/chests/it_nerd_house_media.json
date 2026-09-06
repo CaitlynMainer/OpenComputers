@@ -1,0 +1,146 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2.0,
+        "max": 4.0
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:floppy",
+          "weight": 16,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 3.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:floppy",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "opencomputers:random_loot_disk"
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:eeprom",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:disk",
+          "weight": 6,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 3.0
+              }
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:manual",
+          "weight": 5
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:printedcircuitboard",
+          "weight": 4
+        }
+      ]
+    },
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 1.0,
+        "max": 2.0
+      },
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:hdd1",
+          "weight": 12
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:diskdrive",
+          "weight": 10
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:eeprom",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:diskdrivemountable",
+          "weight": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:hdd2",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:ssd1",
+          "weight": 2
+        }
+      ]
+    },
+    {
+      "rolls": 1.0,
+      "entries": [
+        {
+          "type": "minecraft:empty",
+          "weight": 25
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:keyboard",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:screen1",
+          "weight": 8
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:terminal",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:case1",
+          "weight": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "opencomputers:rack",
+          "weight": 2
+        }
+      ]
+    }
+  ]
+}
