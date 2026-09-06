@@ -148,7 +148,7 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     null
   }
 
-  @Callback(direct = true, limit = 4, doc = """function(path:string[, mode:string='r']):userdata -- Opens a new file descriptor and returns its handle.""")
+  @Callback(direct = true, limit = 4, doc = """function(path:string[, mode:string='r']):userdata -- Opens a new file descriptor in r, w, a, r+, w+, or a+ mode and returns its handle. A mode may include b.""")
   def open(context: Context, args: Arguments): Array[AnyRef] = fileSystem.synchronized {
     if (owners.get(context.node.address).fold(false)(_.size >= Settings.get.maxHandles)) {
       throw new IOException("too many open handles")
@@ -338,6 +338,9 @@ class FileSystem(val fileSystem: IFileSystem, var label: Label, val host: Option
     if (("r" == value) || ("rb" == value)) return Mode.Read
     if (("w" == value) || ("wb" == value)) return Mode.Write
     if (("a" == value) || ("ab" == value)) return Mode.Append
+    if (("r+" == value) || ("r+b" == value) || ("rb+" == value)) return Mode.ReadWrite
+    if (("w+" == value) || ("w+b" == value) || ("wb+" == value)) return Mode.ReadWriteTruncate
+    if (("a+" == value) || ("a+b" == value) || ("ab+" == value)) return Mode.ReadAppend
     throw new IllegalArgumentException("unsupported mode")
   }
 

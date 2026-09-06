@@ -1,8 +1,8 @@
 package li.cil.oc.integration.computercraft
 
 import java.io.IOException
-import java.io.OutputStream
-import java.nio.channels.Channels
+import java.nio.ByteBuffer
+import java.nio.channels.SeekableByteChannel
 import dan200.computercraft.api.filesystem.WritableMount
 import li.cil.oc.api.fs.Mode
 import li.cil.oc.server.fs.OutputStreamFileSystem
@@ -30,21 +30,42 @@ class ComputerCraftWritableFileSystem(override val mount: WritableMount)
   }
 
   override protected def openOutputHandle(id: Int, path: String, mode: Mode): Option[OutputHandle] = try {
-    Some(new ComputerCraftOutputHandle(mount, mode match {
-      case Mode.Append => Channels.newOutputStream(mount.openFile(path, mutable.Set[OpenOption](StandardOpenOption.APPEND).asJava))
-      case Mode.Write => Channels.newOutputStream(mount.openFile(path, mutable.Set[OpenOption](StandardOpenOption.WRITE).asJava))
-      case _ => throw new IllegalArgumentException()
-    }, this, id, path))
+    val options = mutable.Set[OpenOption](StandardOpenOption.WRITE)
+    if (mode.isReadable) options += StandardOpenOption.READ
+    if (!mode.requiresExisting) options += StandardOpenOption.CREATE
+    if (mode.isTruncate) options += StandardOpenOption.TRUNCATE_EXISTING
+    val channel = mount.openFile(path, options.asJava)
+    if (mode.isAppend && !mode.isReadable) channel.position(channel.size())
+    Some(new ComputerCraftOutputHandle(mount, channel, this, id, path, mode))
   } catch {
     case _: Throwable => None
   }
 
-  protected class ComputerCraftOutputHandle(val mount: WritableMount, val stream: OutputStream, owner: OutputStreamFileSystem, handle: Int, path: String) extends OutputHandle(owner, handle, path) {
-    override def length() = mount.getSize(path)
+  protected class ComputerCraftOutputHandle(val mount: WritableMount, val channel: SeekableByteChannel, owner: OutputStreamFileSystem, handle: Int, path: String, initialMode: Mode) extends OutputHandle(owner, handle, path, initialMode) {
+    override def length() = channel.size()
 
-    override def position() = throw new IOException("bad file descriptor")
+    override def position() = channel.position()
 
-    override def write(value: Array[Byte]) = stream.write(value)
+    override def close(): Unit = {
+      super.close()
+      channel.close()
+    }
+
+    override def seek(to: Long) = {
+      if (to < 0) throw new IOException("invalid offset")
+      channel.position(to)
+      to
+    }
+
+    override def read(value: Array[Byte]) =
+      if (mode.isReadable) channel.read(ByteBuffer.wrap(value))
+      else throw new IOException("bad file descriptor")
+
+    override def write(value: Array[Byte]) = {
+      if (mode.isAppend) channel.position(channel.size())
+      val buffer = ByteBuffer.wrap(value)
+      while (buffer.hasRemaining) channel.write(buffer)
+    }
   }
 
 }

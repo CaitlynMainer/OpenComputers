@@ -21,10 +21,10 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
   // ----------------------------------------------------------------------- //
 
   override def open(path: String, mode: Mode) = this.synchronized(mode match {
-    case Mode.Read => super.open(path, mode)
+    case _ if !mode.isWritable => super.open(path, mode)
     case _ =>
       FileSystem.validatePath(path)
-      if (!isDirectory(path)) {
+      if (!isDirectory(path) && (!mode.requiresExisting || exists(path))) {
         val handle = Iterator.continually((Math.random() * Int.MaxValue).toInt + 1).filterNot(handles.contains).next()
         openOutputHandle(handle, path, mode) match {
           case Some(fileHandle) =>
@@ -49,6 +49,8 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
   private final val OutputTag = "output"
   private final val HandleTag = "handle"
   private final val PathTag = "path"
+  private final val ModeTag = "mode"
+  private final val PositionTag = "position"
 
   override def loadData(nbt: CompoundTag): Unit = {
     super.loadData(nbt)
@@ -57,8 +59,21 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
     (0 until handlesNbt.size).map(handlesNbt.getCompound).foreach(handleNbt => {
       val handle = handleNbt.getInt(HandleTag)
       val path = handleNbt.getString(PathTag)
-      openOutputHandle(handle, path, Mode.Append) match {
-        case Some(fileHandle) => handles += handle -> fileHandle
+      val mode = if (handleNbt.contains(ModeTag, Tag.TAG_STRING)) {
+        try Mode.valueOf(handleNbt.getString(ModeTag))
+        catch { case _: IllegalArgumentException => Mode.Append }
+      } else Mode.Append
+      val position = if (handleNbt.contains(PositionTag)) handleNbt.getLong(PositionTag) else -1L
+      val reopenMode = mode match {
+        case Mode.Write => Mode.Append
+        case Mode.ReadWriteTruncate => Mode.ReadWrite
+        case _ => mode
+      }
+      openOutputHandle(handle, path, reopenMode) match {
+        case Some(fileHandle) =>
+          fileHandle.restoreMode(mode)
+          if (position >= 0) fileHandle.seek(position)
+          handles += handle -> fileHandle
         case _ => // The source file seems to have changed since last time.
       }
     })
@@ -73,6 +88,8 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
       val handleNbt = new CompoundTag()
       handleNbt.putInt(HandleTag, file.handle)
       handleNbt.putString(PathTag, file.path)
+      handleNbt.putString(ModeTag, file.mode.name())
+      handleNbt.putLong(PositionTag, file.position)
       handlesNbt.add(handleNbt)
     }
     nbt.put(OutputTag, handlesNbt)
@@ -84,10 +101,12 @@ trait OutputStreamFileSystem extends InputStreamFileSystem {
 
   // ----------------------------------------------------------------------- //
 
-  protected abstract class OutputHandle(val owner: OutputStreamFileSystem, val handle: Int, val path: String) extends api.fs.Handle {
+  protected abstract class OutputHandle(val owner: OutputStreamFileSystem, val handle: Int, val path: String, var mode: Mode) extends api.fs.Handle {
     protected var _isClosed = false
 
     def isClosed = _isClosed
+
+    def restoreMode(value: Mode): Unit = mode = value
 
     override def close() = if (!isClosed) {
       _isClosed = true

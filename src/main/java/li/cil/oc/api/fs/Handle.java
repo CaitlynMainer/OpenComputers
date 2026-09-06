@@ -29,8 +29,7 @@ public interface Handle {
      * Tries to read as much data from the file as fits into the specified
      * array.
      * <br>
-     * For files opened in write or append mode this should always throw an
-     * exception.
+     * For files opened without read access this should always throw an exception.
      *
      * @param into the buffer to read the data into.
      * @return the number of bytes read; -1 if there are no more bytes (EOF).
@@ -43,12 +42,11 @@ public interface Handle {
     /**
      * Jump to the specified position in the file, if possible.
      * <br>
-     * For files opened in write or append mode this should always throw an
-     * exception.
+     * Whether seeking is supported depends on the backing file system.
      *
      * @param to the position in the file to jump to.
      * @return the resulting position in the file.
-     * @throws IOException if the file was opened in write mode.
+     * @throws IOException if seeking is unsupported or an I/O error occurred.
      */
     long seek(long to) throws IOException;
 

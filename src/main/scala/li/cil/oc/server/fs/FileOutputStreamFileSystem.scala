@@ -37,7 +37,7 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   override protected def openOutputHandle(id: Int, path: String, mode: Mode): Option[OutputHandle] =
     Some(new FileHandle(new RandomAccessFile(new io.File(root, path), mode match {
-      case Mode.Append | Mode.Write => "rw"
+      case _ if mode.isWritable => "rw"
       case _ => throw new IllegalArgumentException()
     }), this, id, path, mode))
 
@@ -51,8 +51,8 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
 
   // ----------------------------------------------------------------------- //
 
-  protected class FileHandle(val file: RandomAccessFile, owner: OutputStreamFileSystem, handle: Int, path: String, mode: Mode) extends OutputHandle(owner, handle, path) {
-    if (mode == Mode.Write) {
+  protected class FileHandle(val file: RandomAccessFile, owner: OutputStreamFileSystem, handle: Int, path: String, initialMode: Mode) extends OutputHandle(owner, handle, path, initialMode) {
+    if (initialMode.isTruncate) {
       file.setLength(0)
     }
 
@@ -66,11 +66,19 @@ trait FileOutputStreamFileSystem extends FileInputStreamFileSystem with OutputSt
     }
 
     override def seek(to: Long) = {
+      if (to < 0) throw new io.IOException("invalid offset")
       file.seek(to)
       to
     }
 
-    override def write(value: Array[Byte]) = file.write(value)
+    override def read(value: Array[Byte]) =
+      if (mode.isReadable) file.read(value)
+      else throw new io.IOException("bad file descriptor")
+
+    override def write(value: Array[Byte]) = {
+      if (mode.isAppend) file.seek(file.length())
+      file.write(value)
+    }
   }
 
 }

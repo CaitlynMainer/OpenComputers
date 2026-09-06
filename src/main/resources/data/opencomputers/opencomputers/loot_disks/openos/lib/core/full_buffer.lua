@@ -19,7 +19,8 @@ function buffer:seek(whence, offset)
 
   if self.mode.w or self.mode.a then
     self:flush()
-  elseif whence == "cur" then
+  end
+  if whence == "cur" then
     offset = offset - #self.bufferRead
   end
   local result, reason = self.stream:seek(whence, offset)

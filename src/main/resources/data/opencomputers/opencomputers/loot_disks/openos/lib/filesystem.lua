@@ -270,14 +270,20 @@ function filesystem.open(path, mode)
   mode = tostring(mode or "r")
   checkArg(2, mode, "string")
 
-  assert(({r=true, rb=true, w=true, wb=true, a=true, ab=true})[mode],
-    "bad argument #2 (r[b], w[b] or a[b] expected, got " .. mode .. ")")
+  local modes = {
+    r=true, rb=true, w=true, wb=true, a=true, ab=true,
+    ["r+"]=true, ["r+b"]=true, ["rb+"]=true,
+    ["w+"]=true, ["w+b"]=true, ["wb+"]=true,
+    ["a+"]=true, ["a+b"]=true, ["ab+"]=true,
+  }
+  assert(modes[mode],
+    "bad argument #2 (invalid mode " .. mode .. ")")
 
   local node, rest = findNode(path, false, true)
   if not node then
     return nil, rest
   end
-  if not node.fs or not rest or (({r=true,rb=true})[mode] and not node.fs.exists(rest)) then
+  if not node.fs or not rest or ((mode:sub(1, 1) == "r") and not node.fs.exists(rest)) then
     return nil, "file not found"
   end
 

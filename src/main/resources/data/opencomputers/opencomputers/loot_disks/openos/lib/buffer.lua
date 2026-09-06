@@ -151,6 +151,13 @@ function buffer:write(...)
   if not self.mode.w and not self.mode.a then
     return nil, "write mode was not enabled for this stream"
   end
+  if #self.bufferRead > 0 then
+    local result, reason = self.stream:seek("cur", -#self.bufferRead)
+    if not result then
+      return nil, reason
+    end
+    self.bufferRead = ""
+  end
   local args = table.pack(...)
   for i = 1, args.n do
     if type(args[i]) == "number" then

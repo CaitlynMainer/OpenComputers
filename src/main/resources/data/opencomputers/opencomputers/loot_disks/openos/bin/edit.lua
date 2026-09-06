@@ -668,17 +668,23 @@ do
   if f then
     local x, y, w, h = getArea()
     local chars = 0
-    for fline in f:lines() do
+    local contents = f:read("*a") or ""
+    local start = 1
+    repeat
+      local newline = contents:find("[\r\n]", start)
+      local newlineEnd = newline
+      if newline and contents:sub(newline, newline + 1) == "\r\n" then
+        newlineEnd = newline + 1
+      end
+      local fline = contents:sub(start, newline and newline - 1 or -1)
       table.insert(buffer, fline)
       chars = chars + unicode.len(fline)
       if #buffer <= h then
         drawLine(x, y, w, h, #buffer)
       end
-    end
+      start = newlineEnd and newlineEnd + 1
+    until not newline
     f:close()
-    if #buffer == 0 then
-      table.insert(buffer, "")
-    end
     local format
     if readonly then
       format = [["%s" [readonly] %dL,%dC]]
