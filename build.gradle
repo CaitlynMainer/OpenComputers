@@ -227,18 +227,67 @@ dependencies {
         }
     }
 
-    embedded ":OC-LuaJ:20220907.1"
+    // Every build uses the checksummed GitHub Releases by default. A caller may
+    // supply explicit directories to test a candidate artifact before release.
+    def runtimeDependenciesDirectory = layout.buildDirectory.dir('runtime-dependencies').get().asFile
+    def usePublishedRuntimeDependencies = !findProperty('luaJDirectory') && !findProperty('jnluaNativesDirectory')
+    def luaJDirectory = findProperty('luaJDirectory') ?: (usePublishedRuntimeDependencies
+        ? new File(runtimeDependenciesDirectory, 'luaj') : null)
+    def jnluaNativesDirectory = findProperty('jnluaNativesDirectory') ?: (usePublishedRuntimeDependencies
+        ? new File(runtimeDependenciesDirectory, 'jnlua') : null)
 
-    // Release CI supplies this from the reproducible OC-JNLua native-source
-    // workflow. Local development keeps using the checked-in legacy copy until
-    // a developer explicitly supplies a freshly built native artifact.
-    def jnluaNatives = findProperty('jnluaNativesDirectory')
-        ? fileTree(dir: findProperty('jnluaNativesDirectory'), include: 'OC-JNLua-Natives-*.jar')
-        : files('libs/OC-JNLua-Natives-20220928.1.jar')
-    if (findProperty('jnluaNativesDirectory') && jnluaNatives.files.size() != 1) {
-        throw new GradleException("Expected exactly one OC-JNLua native JAR in ${findProperty('jnluaNativesDirectory')}")
-    }
+    def luaJ = luaJDirectory
+        ? fileTree(dir: luaJDirectory, include: 'OC-LuaJ.jar')
+        : files()
+    embedded luaJ
+
+    def jnluaNatives = jnluaNativesDirectory
+        ? fileTree(dir: jnluaNativesDirectory, include: ['OC-JNLua-Natives.jar', 'OC-JNLua-Natives-*.jar'])
+        : files()
     embedded jnluaNatives
+
+    def downloadRuntimeDependencies = tasks.register('downloadRuntimeDependencies') {
+        onlyIf { usePublishedRuntimeDependencies }
+        // Jenkins refreshes its checkout for each build; local Gradle builds
+        // reuse verified downloads until `clean` removes build/.
+        outputs.upToDateWhen { System.getenv('JENKINS_URL') == null }
+        outputs.files(
+            new File(runtimeDependenciesDirectory, 'luaj/OC-LuaJ.jar'),
+            new File(runtimeDependenciesDirectory, 'luaj/OC-LuaJ-SHA256SUMS.txt'),
+            new File(runtimeDependenciesDirectory, 'jnlua/OC-JNLua-Natives.jar'),
+            new File(runtimeDependenciesDirectory, 'jnlua/OC-JNLua-Natives-SHA256SUMS.txt'))
+        doLast {
+            def download = { String url, File target ->
+                target.parentFile.mkdirs()
+                new URL(url).withInputStream { input -> target.withOutputStream { output -> output << input } }
+            }
+            def verify = { File artifact, File checksum ->
+                def expected = checksum.text.trim().tokenize().first()
+                def digest = java.security.MessageDigest.getInstance('SHA-256')
+                artifact.withInputStream { input ->
+                    byte[] buffer = new byte[8192]
+                    for (int read; (read = input.read(buffer)) >= 0;) digest.update(buffer, 0, read)
+                }
+                def actual = digest.digest().collect { String.format('%02x', it) }.join()
+                if (!actual.equalsIgnoreCase(expected)) throw new GradleException("Checksum mismatch for ${artifact.name}")
+            }
+            def luaJJar = new File(runtimeDependenciesDirectory, 'luaj/OC-LuaJ.jar')
+            def luaJChecksum = new File(runtimeDependenciesDirectory, 'luaj/OC-LuaJ-SHA256SUMS.txt')
+            def jnluaJar = new File(runtimeDependenciesDirectory, 'jnlua/OC-JNLua-Natives.jar')
+            def jnluaChecksum = new File(runtimeDependenciesDirectory, 'jnlua/OC-JNLua-Natives-SHA256SUMS.txt')
+            download('https://github.com/PC-Logix/OC-LuaJ/releases/latest/download/OC-LuaJ.jar', luaJJar)
+            download('https://github.com/PC-Logix/OC-LuaJ/releases/latest/download/OC-LuaJ-SHA256SUMS.txt', luaJChecksum)
+            download('https://github.com/PC-Logix/OC-JNLua/releases/latest/download/OC-JNLua-Natives.jar', jnluaJar)
+            download('https://github.com/PC-Logix/OC-JNLua/releases/latest/download/OC-JNLua-Natives-SHA256SUMS.txt', jnluaChecksum)
+            verify(luaJJar, luaJChecksum)
+            verify(jnluaJar, jnluaChecksum)
+        }
+    }
+    if (usePublishedRuntimeDependencies) {
+        tasks.configureEach { task ->
+            if (task.name != 'downloadRuntimeDependencies') task.dependsOn(downloadRuntimeDependencies)
+        }
+    }
 
     // Sable Companion is deliberately bundled. It has a safe identity
     // implementation when Sable is absent and is overridden through its
@@ -263,7 +312,7 @@ dependencies {
     // embeds into its release jar, so they must also be explicitly added to
     // the development run's additional runtime classpath.
     additionalRuntimeClasspath "com.typesafe:config:1.4.5"
-    additionalRuntimeClasspath ":OC-LuaJ:20220907.1"
+    additionalRuntimeClasspath luaJ
     additionalRuntimeClasspath jnluaNatives
     additionalRuntimeClasspath "org.scala-lang:scala-library:2.13.12"
 

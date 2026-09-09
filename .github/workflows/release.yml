@@ -8,13 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  natives:
-    uses: PC-Logix/OC-JNLua/.github/workflows/build-natives.yml@03cbd4b9e73135591a0a9af348381d8783ec927c
-    with:
-      native_version: ${{ github.ref_name }}
-
   build:
-    needs: natives
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -25,11 +19,15 @@ jobs:
           distribution: 'temurin'
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
-      - name: Download reproducibly built OC-JNLua natives
-        uses: actions/download-artifact@v4
-        with:
-          name: OC-JNLua-Natives
-          path: build/native-dependencies
+      - name: Download and verify Lua runtime dependencies
+        run: |
+          mkdir -p build/runtime-dependencies/jnlua build/runtime-dependencies/luaj
+          curl --fail --location --retry 3 --output build/runtime-dependencies/jnlua/OC-JNLua-Natives.jar https://github.com/PC-Logix/OC-JNLua/releases/latest/download/OC-JNLua-Natives.jar
+          curl --fail --location --retry 3 --output build/runtime-dependencies/jnlua/OC-JNLua-Natives-SHA256SUMS.txt https://github.com/PC-Logix/OC-JNLua/releases/latest/download/OC-JNLua-Natives-SHA256SUMS.txt
+          (cd build/runtime-dependencies/jnlua && sha256sum --check OC-JNLua-Natives-SHA256SUMS.txt)
+          curl --fail --location --retry 3 --output build/runtime-dependencies/luaj/OC-LuaJ.jar https://github.com/PC-Logix/OC-LuaJ/releases/latest/download/OC-LuaJ.jar
+          curl --fail --location --retry 3 --output build/runtime-dependencies/luaj/OC-LuaJ-SHA256SUMS.txt https://github.com/PC-Logix/OC-LuaJ/releases/latest/download/OC-LuaJ-SHA256SUMS.txt
+          (cd build/runtime-dependencies/luaj && sha256sum --check OC-LuaJ-SHA256SUMS.txt)
       - uses: actions/cache@v4
         with:
           path: |
@@ -38,9 +36,9 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
           restore-keys: ${{ runner.os }}-gradle-
       - name: Build with Gradle
-        run: ./gradlew build -Prelease_tag="${{ github.ref_name }}" -PjnluaNativesDirectory=build/native-dependencies
+        run: ./gradlew build -Prelease_tag="${{ github.ref_name }}" -PjnluaNativesDirectory=build/runtime-dependencies/jnlua -PluaJDirectory=build/runtime-dependencies/luaj
       - name: Publish Maven artifacts
-        run: ./gradlew publish -Prelease_tag="${{ github.ref_name }}" -PjnluaNativesDirectory=build/native-dependencies
+        run: ./gradlew publish -Prelease_tag="${{ github.ref_name }}" -PjnluaNativesDirectory=build/runtime-dependencies/jnlua -PluaJDirectory=build/runtime-dependencies/luaj
         env:
           ORG_GRADLE_PROJECT_maven_user: ${{ secrets.MAVEN_USERNAME }}
           ORG_GRADLE_PROJECT_maven_password: ${{ secrets.MAVEN_PASSWORD }}
