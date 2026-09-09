@@ -228,7 +228,17 @@ dependencies {
     }
 
     embedded ":OC-LuaJ:20220907.1"
-    embedded ":OC-JNLua-Natives:20220928.1"
+
+    // Release CI supplies this from the reproducible OC-JNLua native-source
+    // workflow. Local development keeps using the checked-in legacy copy until
+    // a developer explicitly supplies a freshly built native artifact.
+    def jnluaNatives = findProperty('jnluaNativesDirectory')
+        ? fileTree(dir: findProperty('jnluaNativesDirectory'), include: 'OC-JNLua-Natives-*.jar')
+        : files('libs/OC-JNLua-Natives-20220928.1.jar')
+    if (findProperty('jnluaNativesDirectory') && jnluaNatives.files.size() != 1) {
+        throw new GradleException("Expected exactly one OC-JNLua native JAR in ${findProperty('jnluaNativesDirectory')}")
+    }
+    embedded jnluaNatives
 
     // Sable Companion is deliberately bundled. It has a safe identity
     // implementation when Sable is absent and is overridden through its
@@ -254,7 +264,7 @@ dependencies {
     // the development run's additional runtime classpath.
     additionalRuntimeClasspath "com.typesafe:config:1.4.5"
     additionalRuntimeClasspath ":OC-LuaJ:20220907.1"
-    additionalRuntimeClasspath ":OC-JNLua-Natives:20220928.1"
+    additionalRuntimeClasspath jnluaNatives
     additionalRuntimeClasspath "org.scala-lang:scala-library:2.13.12"
 
     def jeiSlug = "jei-${minecraft_version}"
