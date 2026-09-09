@@ -237,12 +237,13 @@ dependencies {
         ? new File(runtimeDependenciesDirectory, 'jnlua') : null)
 
     def luaJ = luaJDirectory
-        ? fileTree(dir: luaJDirectory, include: 'OC-LuaJ.jar')
+        ? files(new File(luaJDirectory, 'OC-LuaJ.jar'))
         : files()
+    compileOnly luaJ
     embedded luaJ
 
     def jnluaNatives = jnluaNativesDirectory
-        ? fileTree(dir: jnluaNativesDirectory, include: ['OC-JNLua-Natives.jar', 'OC-JNLua-Natives-*.jar'])
+        ? files(new File(jnluaNativesDirectory, 'OC-JNLua-Natives.jar'))
         : files()
     embedded jnluaNatives
 
@@ -284,8 +285,10 @@ dependencies {
         }
     }
     if (usePublishedRuntimeDependencies) {
-        tasks.configureEach { task ->
-            if (task.name != 'downloadRuntimeDependencies') task.dependsOn(downloadRuntimeDependencies)
+        // LuaJ is needed on Scala's compile classpath and both JARs are needed
+        // for packaging. Do not attach this to `clean`: it destroys build/.
+        tasks.matching { it.name in ['compileJava', 'compileScala', 'jarJar'] }.configureEach {
+            dependsOn(downloadRuntimeDependencies)
         }
     }
 
