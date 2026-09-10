@@ -39,7 +39,7 @@ import net.neoforged.neoforge.common.MutableDataComponentHolder
 import net.neoforged.neoforge.common.extensions.IItemExtension
 import net.neoforged.neoforge.event.entity.player.PlayerEvent
 import net.neoforged.neoforge.event.level.LevelEvent
-import net.neoforged.neoforge.event.tick.ServerTickEvent
+import net.neoforged.neoforge.event.tick.{EntityTickEvent, ServerTickEvent}
 import net.neoforged.neoforge.server.ServerLifecycleHooks
 
 import java.util
@@ -519,6 +519,18 @@ object Tablet {
   @SubscribeEvent
   def onServerTick(e: ServerTickEvent.Pre): Unit = {
     Server.cleanUp()
+  }
+
+  @SubscribeEvent
+  def onEntityTick(e: EntityTickEvent.Post): Unit = e.getEntity match {
+    case player: Player =>
+      // The stack carried by an open menu is not part of the player's inventory,
+      // so vanilla does not call Item#inventoryTick for it.
+      val stack = player.containerMenu.getCarried
+      if (!stack.isEmpty && stack.getItem.isInstanceOf[Tablet]) {
+        stack.inventoryTick(player.level, player, -1, false)
+      }
+    case _ =>
   }
 
   abstract class Cache extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
