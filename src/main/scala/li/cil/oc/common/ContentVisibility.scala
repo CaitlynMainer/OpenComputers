@@ -41,6 +41,7 @@ object ContentVisibility {
     OCItems.GraphicsCardTier4.asItem(),
     OCItems.HDDTier4.asItem(),
     OCItems.RAMTier7.asItem(),
+    OCItems.RAMTier8.asItem(),
     OCItems.ServerTier4.asItem(),
     OCItems.SSDTier3.asItem()
   )
