@@ -39,7 +39,7 @@ import net.neoforged.neoforge.common.MutableDataComponentHolder
 import net.neoforged.neoforge.common.extensions.IItemExtension
 import net.neoforged.neoforge.event.entity.player.PlayerEvent
 import net.neoforged.neoforge.event.level.LevelEvent
-import net.neoforged.neoforge.event.tick.{EntityTickEvent, ServerTickEvent}
+import net.neoforged.neoforge.event.tick.ServerTickEvent
 import net.neoforged.neoforge.server.ServerLifecycleHooks
 
 import java.util
@@ -47,6 +47,7 @@ import java.util.UUID
 import java.util.concurrent.{Callable, TimeUnit}
 import scala.collection.JavaConverters.asJavaIterable
 import scala.collection.convert.ImplicitConversionsToScala._
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 class Tablet(props: Properties) extends Item(props) with traits.SimpleItem with traits.Chargeable with IItemExtension {
@@ -462,6 +463,8 @@ object Tablet {
   // with storing context information for analyzing a block in the singleton.
   var currentlyAnalyzing: Option[(BlockPosition, Direction, Float, Float, Float)] = None
 
+  private val lastCursorTicks = mutable.Map.empty[UUID, (String, Long)]
+
   def getId(stack: ItemStack): Option[String] = {
     val tag = ItemUtils.getTag(stack)
     if (tag != null && tag.contains(Settings.namespace + "tablet", Tag.TAG_STRING)) {
@@ -506,6 +509,10 @@ object Tablet {
   @SubscribeEvent
   def onClientTick(e: ClientTickEvent.Pre): Unit = {
     Client.cleanUp()
+    val player = Minecraft.getInstance.player
+    if (player != null) {
+      getId(player.containerMenu.getCarried).foreach(client.PacketSender.sendTabletCursorTick)
+    }
     ServerLifecycleHooks.getCurrentServer match {
       case integrated: IntegratedServer if Minecraft.getInstance.isPaused =>
         // While the game is paused, manually keep all tablets alive, to avoid
@@ -521,16 +528,19 @@ object Tablet {
     Server.cleanUp()
   }
 
-  @SubscribeEvent
-  def onEntityTick(e: EntityTickEvent.Post): Unit = e.getEntity match {
-    case player: Player =>
-      // The stack carried by an open menu is not part of the player's inventory,
-      // so vanilla does not call Item#inventoryTick for it.
-      val stack = player.containerMenu.getCarried
-      if (!stack.isEmpty && stack.getItem.isInstanceOf[Tablet]) {
-        stack.inventoryTick(player.level, player, -1, false)
+
+  /** Advance a running tablet held by a player's client-side cursor. */
+  def tickCursorHeld(player: ServerPlayer, id: String): Unit = {
+    val gameTime = player.level.getGameTime
+    val key = player.getUUID
+    if (!lastCursorTicks.get(key).contains((id, gameTime))) {
+      // Never construct a machine from client data. A cursor tick may only
+      // reach a tablet which this player already owns in the server cache.
+      Server.get(id).filter(_.player == player).foreach { tablet =>
+        lastCursorTicks(key) = (id, gameTime)
+        tablet.update(player.level, player, -1, selected = false)
       }
-    case _ =>
+    }
   }
 
   abstract class Cache extends Callable[TabletWrapper] with RemovalListener[String, TabletWrapper] {
@@ -648,6 +658,8 @@ object Tablet {
   }
 
   object Server extends Cache {
+    def get(id: String): Option[TabletWrapper] = cache.synchronized(Option(cache.getIfPresent(id)))
+
     def invalidate(stack: ItemStack): Unit = {
       val id = getOrCreateId(stack)
       cache.synchronized {

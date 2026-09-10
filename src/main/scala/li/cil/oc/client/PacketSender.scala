@@ -127,6 +127,14 @@ object PacketSender {
     pb.sendToServer()
   }
 
+  def sendTabletCursorTick(id: String): Unit = {
+    val pb = new SimplePacketBuilder(PacketType.TabletCursorTick)
+
+    pb.writeUTF(id)
+
+    pb.sendToServer()
+  }
+
   def sendMouseClick(address: String, x: Double, y: Double, drag: Boolean, button: Int): Unit = {
     val pb = new SimplePacketBuilder(PacketType.MouseClickOrDrag)
 

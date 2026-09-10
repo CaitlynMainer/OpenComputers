@@ -113,5 +113,8 @@ object PacketType extends Enumeration {
 
   RobotFlagChange,
 
+  // Client -> Server. Sent while a tablet is held by the client's cursor.
+  TabletCursorTick,
+
   EndOfList = Value
 }
