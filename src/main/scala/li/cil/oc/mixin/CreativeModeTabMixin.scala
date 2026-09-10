@@ -27,8 +27,14 @@ import java.util
       val sectionSearchItems = displayItemsSearchTab
 
       original.call(parameters)
-      val additionalDisplayItems = new util.ArrayList[ItemStack](displayItems)
-      val additionalSearchItems = new util.ArrayList[ItemStack](displayItemsSearchTab)
+      // Some other mixins (notably ModernFix's creative-tab memoization) can
+      // return from buildContents without invoking the wrapped implementation.
+      // In that case the fields still point at OC's already-decorated lists;
+      // treating them as newly generated entries makes every rebuild append
+      // another copy of the configured devices.
+      val rebuilt = (displayItems ne sectionDisplayItems) || (displayItemsSearchTab ne sectionSearchItems)
+      val additionalDisplayItems = if (rebuilt) new util.ArrayList[ItemStack](displayItems) else new util.ArrayList[ItemStack]()
+      val additionalSearchItems = if (rebuilt) new util.ArrayList[ItemStack](displayItemsSearchTab) else new util.ArrayList[ItemStack]()
 
       displayItems = sectionDisplayItems
       displayItemsSearchTab = sectionSearchItems
