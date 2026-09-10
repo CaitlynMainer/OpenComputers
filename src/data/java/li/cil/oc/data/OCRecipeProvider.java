@@ -1,12 +1,17 @@
 package li.cil.oc.data;
 
 import li.cil.oc.OpenComputers;
+import li.cil.oc.common.ContentVisibility;
 import li.cil.oc.common.block.ChameliumBlock;
+import li.cil.oc.common.condition.OpenScreensEnabledCondition;
+import li.cil.oc.common.condition.Tier4EnabledCondition;
 import li.cil.oc.common.datacomponents.OCComponents;
 import li.cil.oc.common.init.OCBlocks;
 import li.cil.oc.common.init.OCItems;
 import li.cil.oc.common.openprinter.OpenPrinter;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.recipes.*;
@@ -20,11 +25,16 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.conditions.ICondition;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 class OCRecipeProvider extends RecipeProvider {
+    private final CompletableFuture<HolderLookup.Provider> registries;
+
     private static final Map<DyeColor, TagKey<Item>> DYE_TAGS = Map.ofEntries(
         Map.entry(DyeColor.BLACK, Tags.Items.DYES_BLACK),
         Map.entry(DyeColor.RED, Tags.Items.DYES_RED),
@@ -46,9 +56,33 @@ class OCRecipeProvider extends RecipeProvider {
 
     OCRecipeProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
         super(output, registries);
+        this.registries = registries;
     }
 
     public void buildRecipes(RecipeOutput output) {
+        final var registryLookup = registries.join();
+        final var delegate = output;
+        output = new RecipeOutput() {
+            @Override
+            public Advancement.Builder advancement() {
+                return delegate.advancement();
+            }
+
+            @Override
+            public void accept(final ResourceLocation id, final net.minecraft.world.item.crafting.Recipe<?> recipe,
+                               @Nullable final AdvancementHolder advancement, final ICondition... conditions) {
+                final var result = recipe.getResultItem(registryLookup).getItem();
+                var gatedConditions = conditions;
+                if (ContentVisibility.isTier4(result)) {
+                    gatedConditions = append(gatedConditions, Tier4EnabledCondition.INSTANCE());
+                }
+                if (ContentVisibility.isOpenScreens(result)) {
+                    gatedConditions = append(gatedConditions, OpenScreensEnabledCondition.INSTANCE());
+                }
+                delegate.accept(id, recipe, advancement, gatedConditions);
+            }
+        };
+
         addMaterials(output);
         addTools(output);
         addComponents(output);
@@ -60,6 +94,12 @@ class OCRecipeProvider extends RecipeProvider {
 
         addFloppy(output, "openos", "OpenOS (Operating System)", OCItems.Manual(), DyeColor.GREEN);
         addFloppy(output, "oppm", "OPPM (Package Manager)", OCItems.Interweb(), DyeColor.CYAN);
+    }
+
+    private static ICondition[] append(final ICondition[] conditions, final ICondition condition) {
+        final var result = Arrays.copyOf(conditions, conditions.length + 1);
+        result[conditions.length] = condition;
+        return result;
     }
 
     private void addMaterials(RecipeOutput output) {

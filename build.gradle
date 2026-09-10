@@ -175,6 +175,12 @@ repositories {
         }
     }
     exclusiveContent {
+        forRepositories(maven { url = "https://repo.sleeping.town/" })
+        filter {
+            includeGroup "dev.emi"
+        }
+    }
+    exclusiveContent {
         forRepositories(maven { url = "https://chickenbones.net/maven/" })
         filter {
             includeGroup "codechicken"
@@ -357,6 +363,10 @@ dependencies {
     // JEI
     compileOnly("mezz.jei:${jeiSlug}-neoforge-api:${jei_version}")
     devRuntimeOnly("mezz.jei:${jeiSlug}-neoforge:${jei_version}")
+
+    // EMI
+    compileOnly("dev.emi:emi-neoforge:${emi_version}:api")
+    devRuntimeOnly("dev.emi:emi-neoforge:${emi_version}")
 
     // CodeChicken
     compileOnly("curse.maven:cb-multipart-258426:${cbmultipart_file_id}")

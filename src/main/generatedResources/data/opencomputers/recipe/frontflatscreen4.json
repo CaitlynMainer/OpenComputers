@@ -1,4 +1,12 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "opencomputers:tier4_enabled"
+    },
+    {
+      "type": "opencomputers:openscreens_enabled"
+    }
+  ],
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {

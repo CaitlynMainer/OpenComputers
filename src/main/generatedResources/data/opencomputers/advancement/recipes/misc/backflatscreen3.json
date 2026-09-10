@@ -1,4 +1,9 @@
 {
+  "neoforge:conditions": [
+    {
+      "type": "opencomputers:openscreens_enabled"
+    }
+  ],
   "parent": "minecraft:recipes/root",
   "criteria": {
     "has_chip3": {

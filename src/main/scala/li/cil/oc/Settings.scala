@@ -370,6 +370,8 @@ class Settings(val config: Config) {
   val disassembleAllTheThings = config.getBoolean("misc.disassembleAllTheThings")
   val disassemblerBreakChance = config.getDouble("misc.disassemblerBreakChance") max 0 min 1
   val disassemblerInputBlacklist = config.getStringList("misc.disassemblerInputBlacklist")
+  val hideTier4 = config.getBoolean("misc.hideTier4")
+  val hideOpenScreens = config.getBoolean("misc.hideOpenScreens")
   val hideOwnPet = config.getBoolean("misc.hideOwnSpecial")
   val allowItemStackInspection = config.getBoolean("misc.allowItemStackInspection")
   val databaseEntriesPerTier = Array(9, 25, 81)

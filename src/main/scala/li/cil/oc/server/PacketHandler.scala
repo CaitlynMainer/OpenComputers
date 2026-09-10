@@ -77,6 +77,7 @@ object PacketHandler extends CommonPacketHandler {
       case PacketType.RobotAssemblerStart => onRobotAssemblerStart(p)
       case PacketType.RobotStateRequest => onRobotStateRequest(p)
       case PacketType.ServerPower => onServerPower(p)
+      case PacketType.TabletCursorTick => onTabletCursorTick(p)
       case PacketType.TextBufferInit => onTextBufferInit(p)
       case PacketType.WaypointLabel => onWaypointLabel(p)
       case PacketType.HoloScreenResize => onHoloScreenResize(p)
@@ -413,6 +414,11 @@ object PacketHandler extends CommonPacketHandler {
       PacketSender.sendMachineItemState(player, stack, Tablet.get(stack, p.player).machine.isRunning)
     }
     case _ => // ignore
+  }
+
+  def onTabletCursorTick(p: PacketParser): Unit = p.player match {
+    case player: ServerPlayer => Tablet.tickCursorHeld(player, p.readUTF())
+    case _ => // Ignore.
   }
 
   def onTextBufferInit(p: PacketParser): Unit = {

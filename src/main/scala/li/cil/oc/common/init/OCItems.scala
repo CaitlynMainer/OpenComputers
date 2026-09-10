@@ -8,7 +8,7 @@ import li.cil.oc.common.datacomponents.OCComponents
 import li.cil.oc.common.item.data._
 import li.cil.oc.common.item.traits.SimpleItem
 import li.cil.oc.common.openprinter.OpenPrinter
-import li.cil.oc.common.{Loot, Tier, item}
+import li.cil.oc.common.{ContentVisibility, Loot, Tier, item}
 import li.cil.oc.integration.opencomputers.ModOpenComputers
 import li.cil.oc.server.machine.luac.LuaStateFactory
 import li.cil.oc.util.{Rarity => OCRarity}
@@ -546,7 +546,7 @@ object OCItems extends ItemAPI {
     val sectionStacks = mutable.ArrayBuffer.empty[ItemStack]
 
     def addToSection(sectionId: String, stack: ItemStack): Unit = {
-      if (!stack.isEmpty && !sectionStacks.exists(ItemStack.isSameItemSameComponents(_, stack))) {
+      if (!stack.isEmpty && !ContentVisibility.isHidden(stack) && !sectionStacks.exists(ItemStack.isSameItemSameComponents(_, stack))) {
         sectionMap.computeIfAbsent(sectionId, (s) => new util.LinkedList).add(stack)
         sectionStacks += stack
       }
@@ -593,7 +593,7 @@ object OCItems extends ItemAPI {
       }
     })
 
-    additionalSearchItems.forEach(stack => searchItems.accept(stack))
+    additionalSearchItems.forEach(stack => if (!ContentVisibility.isHidden(stack)) searchItems.accept(stack))
 
     displayItems.accept(OCItems.createConfiguredDrone())
     displayItems.accept(OCItems.createConfiguredMicrocontroller())

@@ -2,7 +2,7 @@ package li.cil.oc.integration.jei
 
 import li.cil.oc.OpenComputers
 import li.cil.oc.client.gui.Relay
-import li.cil.oc.common.Loot
+import li.cil.oc.common.{ContentVisibility, Loot}
 import li.cil.oc.common.datacomponents.OCComponents
 import li.cil.oc.common.init.{OCBlocks, OCItems}
 import li.cil.oc.integration.util.ItemSearch
@@ -15,6 +15,8 @@ import mezz.jei.api.runtime.IJeiRuntime
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.ItemStack
+
+import scala.jdk.CollectionConverters._
 
 @JeiPlugin
 class ModPluginOpenComputers extends IModPlugin {
@@ -48,6 +50,10 @@ class ModPluginOpenComputers extends IModPlugin {
     stackUnderMouse = (_, _, _) => StackOption(jeiRuntime.getIngredientListOverlay.getIngredientUnderMouse(VanillaTypes.ITEM_STACK))
     ModJEI.runtime = Option(jeiRuntime)
     ModJEI.ingredientRegistry = Option(jeiRuntime.getIngredientManager)
+    val hiddenStacks = ContentVisibility.hiddenItems.asScala.map(new ItemStack(_)).toSeq.asJava
+    if (!hiddenStacks.isEmpty) {
+      jeiRuntime.getIngredientManager.removeIngredientsAtRuntime(VanillaTypes.ITEM_STACK, hiddenStacks)
+    }
     Option(Loot.defaultEEPROM).filter(!_.isEmpty).foreach(ModJEI.addItemAtRuntime)
   }
 

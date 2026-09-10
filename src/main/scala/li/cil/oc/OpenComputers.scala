@@ -2,6 +2,7 @@ package li.cil.oc
 
 import li.cil.oc.client.ColorHandler
 import li.cil.oc.common.blockentity.BlockEntityTypes
+import li.cil.oc.common.condition.ContentConditions
 import li.cil.oc.common.datacomponents.OCComponents
 import li.cil.oc.common.entity.EntityTypes
 import li.cil.oc.common.init.{OCBlocks, OCItems}
@@ -65,6 +66,7 @@ class OpenComputers(modBus: IEventBus, modContainer: ModContainer) {
 
   modBus.register(this)
   OCComponents.init(modBus)
+  ContentConditions.init(modBus)
   OCItems.init(modBus)
   OCBlocks.init(modBus)
   CreativeTab.CREATIVE_TABS.register(modBus)
