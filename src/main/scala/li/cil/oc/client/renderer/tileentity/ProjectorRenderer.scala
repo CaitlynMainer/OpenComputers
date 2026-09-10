@@ -204,10 +204,13 @@ class ProjectorRenderer extends BlockEntityRenderer[Projector] {
     val halfHeight = (ProjectorRenderer.ProjectionHeight * projectionScale * 0.5).toFloat // 320:200, or 16:10.
     val matrix = stack.last().pose()
     val vertices = buffer.getBuffer(texture.renderType)
-    vertices.addVertex(matrix, -halfWidth, halfHeight, 0).setColor(255, 255, 255, 255).setUv(0, 0)
-    vertices.addVertex(matrix, halfWidth, halfHeight, 0).setColor(255, 255, 255, 255).setUv(1, 0)
-    vertices.addVertex(matrix, halfWidth, -halfHeight, 0).setColor(255, 255, 255, 255).setUv(1, 1)
-    vertices.addVertex(matrix, -halfWidth, -halfHeight, 0).setColor(255, 255, 255, 255).setUv(0, 1)
+    // The projection is viewed from the emitter side, i.e. the reverse side
+    // of this plane. Mirror U so framebuffer coordinates retain their
+    // documented top-left origin instead of appearing right-to-left.
+    vertices.addVertex(matrix, -halfWidth, halfHeight, 0).setColor(255, 255, 255, 255).setUv(1, 0)
+    vertices.addVertex(matrix, halfWidth, halfHeight, 0).setColor(255, 255, 255, 255).setUv(0, 0)
+    vertices.addVertex(matrix, halfWidth, -halfHeight, 0).setColor(255, 255, 255, 255).setUv(0, 1)
+    vertices.addVertex(matrix, -halfWidth, -halfHeight, 0).setColor(255, 255, 255, 255).setUv(1, 1)
   }
 
   private def renderScreen(projector: Projector, stack: PoseStack, buffer: MultiBufferSource): Unit = {
