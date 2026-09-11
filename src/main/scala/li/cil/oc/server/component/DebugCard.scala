@@ -219,7 +219,7 @@ class DebugCard(host: EnvironmentHost) extends AbstractManagedEnvironment with D
         if (state.isAir()) {
           result(false, "air", block)
         }
-        else if (block.isInstanceOf[LiquidBlock] || world.isFluidAtPosition(position.toBlockPos, _ => true)) {
+        else if (block.isInstanceOf[LiquidBlock] || world.isFluidAtPosition(position.toBlockPos, !_.isEmpty)) {
           val event = new BlockEvent.BreakEvent(world, position.toBlockPos, state, fakePlayer)
           NeoForge.EVENT_BUS.post(event)
           result(event.isCanceled, "liquid", block)

@@ -97,7 +97,7 @@ trait LevelAware {
         if (state.isAir()) {
           (false, "air")
         }
-        else if (block.isInstanceOf[LiquidBlock] || world.isFluidAtPosition(blockPos.toBlockPos, _ => true)) {
+        else if (block.isInstanceOf[LiquidBlock] || world.isFluidAtPosition(blockPos.toBlockPos, !_.isEmpty)) {
           val event = new BlockEvent.BreakEvent(world, blockPos.toBlockPos, state, fakePlayer)
           NeoForge.EVENT_BUS.post(event)
           (event.isCanceled, "liquid")
