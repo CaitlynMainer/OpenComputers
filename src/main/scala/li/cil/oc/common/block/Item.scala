@@ -58,13 +58,12 @@ class Item(value: Block, props: Properties) extends BlockItem(value, props) {
       ctx.getLevel.getBlockEntity(ctxToUse.getClickedPos) match {
         case keyboard: blockentity.Keyboard => // Ignore.
         case rotatable: blockentity.traits.Rotatable =>
-          val physicalYaw = RotationHelper.fromYaw(ctxToUse.getPlayer.getYRot)
-          val localYaw = SableCompat.localFacing(ctxToUse.getLevel,
-            Vec3.atCenterOf(ctxToUse.getClickedPos), physicalYaw)
-          rotatable.setFromEntityPitchAndYaw(ctxToUse.getPlayer, localYaw)
-          if (!rotatable.validFacings.contains(rotatable.pitch)) {
-            rotatable.pitch = rotatable.validFacings.headOption.getOrElse(Direction.NORTH)
-          }
+          val localClickPos = Vec3.atCenterOf(ctxToUse.getClickedPos)
+          val forward = Vec3.directionFromRotation(ctxToUse.getPlayer.getXRot, ctxToUse.getPlayer.getYRot).reverse()
+          val side = Vec3.directionFromRotation(0, ctxToUse.getPlayer.getYRot + 90).reverse()
+          val localYaw = SableCompat.localHeading(ctxToUse.getLevel, localClickPos, forward, side)
+          val localPitch = SableCompat.localPitch(ctxToUse.getLevel, localClickPos, forward)
+          rotatable.setFromPitchAndYaw(localPitch.toFloat, localYaw.toFloat)
           if (!rotatable.isInstanceOf[blockentity.RobotProxy]) {
             rotatable.invertRotation()
           }

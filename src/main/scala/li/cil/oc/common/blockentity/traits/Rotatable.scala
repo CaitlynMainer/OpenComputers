@@ -59,6 +59,11 @@ trait Rotatable extends RotationAware with internal.Rotatable {
       pitch2Direction((entity.getXRot / 90).round + 1),
       localYaw)
 
+  def setFromPitchAndYaw(localPitch: Float, localYaw: Float) =
+    trySetPitchYaw(
+      pitch2Direction((localPitch / 90).round + 1),
+      yaw2Direction((localYaw / 360 * 4).round & 3))
+
   def setFromFacing(value: Direction) =
     value match {
       case Direction.DOWN | Direction.UP =>
@@ -135,6 +140,12 @@ trait Rotatable extends RotationAware with internal.Rotatable {
 
   /** Validates new values against the allowed rotations as set in our block. */
   protected def trySetPitchYaw(pitch: Direction, yaw: Direction) = {
+    var safePitch = pitch
+    var safeYaw = yaw
+    if (!pitch2Direction.contains(pitch))
+      safePitch = Direction.NORTH
+    if (!validFacings.contains(yaw))
+      safeYaw = validFacings.headOption.getOrElse(Direction.NORTH)
     val oldState = getLevel.getBlockState(getBlockPos)
     def setState(newState: BlockState): Boolean = {
       if (oldState.hashCode() != newState.hashCode()) {
@@ -146,9 +157,9 @@ trait Rotatable extends RotationAware with internal.Rotatable {
     }
     getBlockState.getBlock match {
       case rotatable if oldState.hasProperty(PropertyRotatable.Pitch) && oldState.hasProperty(PropertyRotatable.Yaw) =>
-        setState(oldState.setValue(PropertyRotatable.Pitch, pitch).setValue(PropertyRotatable.Yaw, yaw))
+        setState(oldState.setValue(PropertyRotatable.Pitch, safePitch).setValue(PropertyRotatable.Yaw, safeYaw))
       case rotatable if oldState.hasProperty(PropertyRotatable.Facing) =>
-        setState(oldState.setValue(PropertyRotatable.Facing, yaw))
+        setState(oldState.setValue(PropertyRotatable.Facing, safeYaw))
       case _ => false
     }
   }
