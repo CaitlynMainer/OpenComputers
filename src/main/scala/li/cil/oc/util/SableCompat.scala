@@ -44,6 +44,20 @@ object SableCompat {
     }
   }
 
+  /** Transform a world-space direction vector into a local-space vector.
+   *
+   * 'position' should be a location on the target sublevel
+   */
+  def localDirection(level: Level, position: Vec3, facing: Vec3): Vec3 = {
+    if (facing == null) Vec3.ZERO
+    else if (level == null || position == null) facing
+    else {
+      val sublevel = SableCompanion.INSTANCE.getContaining(level, position)
+      if (sublevel == null) facing
+      else sublevel.logicalPose().transformNormalInverse(facing)
+    }
+  }
+
   def distanceSquared(level: Level, a: Vec3, b: Vec3): Double = {
     if (level == null) a.distanceToSqr(b)
     else SableCompanion.INSTANCE.distanceSquaredWithSubLevels(level, a, b)
@@ -60,7 +74,7 @@ object SableCompat {
     }
   }
 
-  /** Get the transformed direction's horizontal heading in degrees.
+  /** Get the transformed direction's horizontal heading in degrees, converted from local-space to world-space.
     *
     * Zero points north (-Z), and values increase clockwise when viewed from
     * above: east is 90, south is 180, and west is 270.
@@ -75,9 +89,38 @@ object SableCompat {
     }
   }
 
-  /** Get the transformed direction's elevation above the horizontal plane. */
+  /** Get the transformed direction's horizontal heading in degrees, converted from world-space to local-space.
+   *
+   * Zero points north (-Z), and values increase clockwise when viewed from
+   * above: east is 90, south is 180, and west is 270.
+   */
+  def localHeading(level: Level, position: Vec3, facing: Vec3, side: Vec3): Double = {
+    var direction = localDirection(level, position, facing)
+    var horizontalLength = math.sqrt(direction.x * direction.x + direction.z * direction.z)
+    if (horizontalLength < 1.0e-3) { // Try to use the side/right vector to deduce yaw
+      direction = localDirection(level, position, side)
+      horizontalLength = math.sqrt(direction.x * direction.x + direction.z * direction.z)
+      if (horizontalLength < 1.0e-3) 0.0
+      else {
+        val heading = math.toDegrees(math.atan2(direction.z, direction.x)) % 360.0
+        if (heading < 0.0) heading + 360.0 else heading
+      }
+    }
+    else {
+      val heading = math.toDegrees(math.atan2(direction.x, -direction.z)) % 360.0
+      if (heading < 0.0) heading + 360.0 else heading
+    }
+  }
+
+  /** Get the transformed direction's elevation above the horizontal plane, converted from local-space to world-space. */
   def physicalPitch(level: Level, position: Vec3, facing: Direction): Double = {
     val direction = physicalDirection(level, position, facing)
+    math.toDegrees(math.atan2(direction.y, math.sqrt(direction.x * direction.x + direction.z * direction.z)))
+  }
+
+  /** Get the transformed direction's elevation above the horizontal plane, converted from world-space to local-space. */
+  def localPitch(level: Level, position: Vec3, facing: Vec3): Double = {
+    val direction = localDirection(level, position, facing)
     math.toDegrees(math.atan2(direction.y, math.sqrt(direction.x * direction.x + direction.z * direction.z)))
   }
 
